@@ -1,0 +1,10 @@
+streamlit
+transformers
+torch
+spacy
+python-docx
+pymupdf
+pandas
+openpyxl
+cx_Oracle
+sentencepiece

@@ -11,32 +11,34 @@ def leer_pdf(path: str) -> str:
             texto += page.get_text()
         return texto.strip()
     except Exception as e:
-        return f"Error al leer PDF: {e}"
+        return f"[ERROR PDF] {e}"
 
 def leer_docx(path: str) -> str:
-    texto = ""
     try:
         doc = docx.Document(path)
-        for parrafo in doc.paragraphs:
-            texto += parrafo.text + "\n"
+        texto = "\n".join(p.text.strip() for p in doc.paragraphs if p.text.strip())
         return texto.strip()
     except Exception as e:
-        return f"Error al leer DOCX: {e}"
+        return f"[ERROR DOCX] {e}"
 
 def leer_excel(path: str) -> str:
     try:
         df = pd.read_excel(path)
-        return df.to_string(index=False)
+        if df.empty:
+            return "El archivo Excel está vacío."
+        texto = "Contenido del archivo:\n"
+        texto += df.to_string(index=False)
+        return texto.strip()
     except Exception as e:
-        return f"Error al leer Excel: {e}"
+        return f"[ERROR XLSX] {e}"
 
 def cargar_documento(path: str) -> str:
     ext = os.path.splitext(path)[-1].lower()
     if ext == ".pdf":
         return leer_pdf(path)
-    elif ext in [".docx"]:
+    elif ext == ".docx":
         return leer_docx(path)
     elif ext in [".xls", ".xlsx"]:
         return leer_excel(path)
     else:
-        return "Formato no soportado. Usa PDF, DOCX o XLS."
+        return "❌ Formato no soportado. Usa PDF, DOCX o XLSX."

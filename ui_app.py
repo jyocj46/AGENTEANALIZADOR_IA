@@ -2,7 +2,9 @@ import streamlit as st
 from lector_documentos import cargar_documento
 from pln import responder_chat, responder_documento
 from memoria import agregar_turno, obtener_contexto, conversacion
+import pandas as pd
 import os
+from conexion import guardar_documento 
 
 st.set_page_config(page_title="Agente Inteligente", layout="wide")
 
@@ -37,6 +39,12 @@ if "mensaje_enviado" not in st.session_state:
     st.session_state.mensaje_enviado = False
 
 
+palabras_documentales = [
+    "resume", "resumen", "de qué trata", "qué dice el documento",
+    "según el documento", "basado en el documento", "el texto", "según zapata"
+]
+
+
 # --------------- COLUMNA DE DOCUMENTO ---------------
 with col_doc:
     st.subheader("📂 Documento")
@@ -51,7 +59,7 @@ with col_doc:
 
     if st.session_state.documento_texto:
         if len(st.session_state.documento_texto) < 1000:
-            st.text_area("Contenido del documento", st.session_state.documento_texto, height=200)
+              st.text_area("Contenido cargado", st.session_state.documento_texto[:1500], height=200)
         else:
             st.info("Documento muy largo para mostrar completo.")
 
@@ -72,12 +80,27 @@ with col_chat:
     if enviar and entrada and not st.session_state.mensaje_enviado:
         contexto = obtener_contexto()
         documento_texto = st.session_state.documento_texto
+        es_documental = any(p in entrada.lower() for p in palabras_documentales)
 
-        if "resumen" in entrada.lower() and documento_texto:
-            respuesta = responder_documento("Resume esto:\n" + documento_texto[:2000])
-        elif documento_texto:
-            prompt = f"Tengo este documento:\n{documento_texto[:2000]}\n\nPregunta: {entrada}"
+        if es_documental and documento_texto:
+            if documento_texto.strip().startswith("Contenido del archivo:"):
+                prompt = (
+                    f"Este documento contiene una tabla de seguimiento de acciones en bolsa.\n"
+                    f"{documento_texto[:2000]}\n\n"
+                    f"Pregunta: {entrada}"
+                )
+            else:
+                prompt = (
+                    f"Tengo este documento:\n{documento_texto[:2000]}\n\n"
+                    f"Pregunta: {entrada}"
+                )
             respuesta = responder_documento(prompt)
+
+            if "resume" in entrada.lower() or "resumen" in entrada.lower():
+                nombre_archivo = archivo.name if archivo else "desconocido"
+                tipo_doc = nombre_archivo.split(".")[-1] if "." in nombre_archivo else "desconocido"
+                guardar_documento(nombre_archivo, documento_texto, respuesta, tipo_doc)
+
         else:
             respuesta = responder_chat(entrada)
 

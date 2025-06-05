@@ -56,18 +56,25 @@ def responder_chat(prompt_es: str) -> str:
 
 
 # ==== RESPUESTA A DOCUMENTOS ====
-def responder_documento(prompt_es: str) -> str:
-    prompt_en = traducir_es_a_en(prompt_es)
+def responder_documento(texto_es: str) -> str:
+    # Traducir texto completo a inglés
+    texto_en = traducir_es_a_en(texto_es)
 
-    entrada = tokenizer_doc(prompt_en, return_tensors="pt", max_length=1024, truncation=True)
-    ids_salida = modelo_doc.generate(
-        entrada["input_ids"],
-        num_beams=4,
-        max_length=150,
-        early_stopping=True
-    )
-    salida_en = tokenizer_doc.decode(ids_salida[0], skip_special_tokens=True)
+    # Fragmentar en bloques de 1024 tokens aproximadamente (~750 palabras)
+    fragmentos = [texto_en[i:i+1500] for i in range(0, len(texto_en), 1500)]
 
-    respuesta_es = traducir_en_a_es(salida_en)
-    return respuesta_es.strip()
-    
+    res_en_total = ""
+    for i, frag in enumerate(fragmentos):
+        entrada = tokenizer_doc(frag, return_tensors="pt", max_length=1024, truncation=True)
+        ids_salida = modelo_doc.generate(
+            entrada["input_ids"],
+            num_beams=4,
+            max_length=150,
+            early_stopping=True
+        )
+        resumen_parcial = tokenizer_doc.decode(ids_salida[0], skip_special_tokens=True)
+        res_en_total += f"{resumen_parcial} "
+
+    # Traducir resumen final a español
+    resumen_es = traducir_en_a_es(res_en_total)
+    return resumen_es.strip()

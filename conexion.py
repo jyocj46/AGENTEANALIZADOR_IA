@@ -82,7 +82,9 @@ def buscar_documentos_relacionados(palabras_clave: list) -> list:
 
         cursor.execute(sql, params)
         resultados = cursor.fetchall()
-        return [r[0] for r in resultados] if resultados else []
+        resumenes = [str(r[0].read()) if hasattr(r[0], 'read') else str(r[0]) for r in resultados]
+        return resumenes
+
     except Exception as e:
         print(f"❌ Error al buscar en memoria semántica: {e}")
         return []

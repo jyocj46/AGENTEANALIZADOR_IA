@@ -8,3 +8,5 @@ pandas
 openpyxl
 cx_Oracle
 sentencepiece
+fitz
+docx

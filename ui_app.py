@@ -4,12 +4,13 @@ from pln import responder_chat, responder_documento
 from memoria import agregar_turno, obtener_contexto, conversacion
 import pandas as pd
 import os
-from conexion import guardar_documento 
+from conexion import guardar_documento, buscar_documentos_relacionados
+from utils import extraer_palabras_clave
 
 st.set_page_config(page_title="Agente Inteligente", layout="wide")
 
 st.markdown("""
-    <h1 style='text-align: center;'>🧠 Agente Conversacional + Documental</h1>
+    <h1 style='text-align: center;'>Agente Analizador y conversador</h1>
     <style>
         .stTextInput > div > div > input {
             font-size: 16px;
@@ -81,6 +82,14 @@ with col_chat:
         contexto = obtener_contexto()
         documento_texto = st.session_state.documento_texto
         es_documental = any(p in entrada.lower() for p in palabras_documentales)
+
+        palabras_clave = extraer_palabras_clave(entrada)
+        resumenes_relacionados = buscar_documentos_relacionados(palabras_clave)
+
+        contexto_previos = ""
+        if resumenes_relacionados:
+            contexto_previos = "\n".join([f"- {r}" for r in resumenes_relacionados])
+            contexto_previos = f"Basado en documentos previos:\n{contexto_previos}\n\n"
 
         if es_documental and documento_texto:
             if documento_texto.strip().startswith("Contenido del archivo:"):

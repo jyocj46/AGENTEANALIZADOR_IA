@@ -5,7 +5,7 @@ from transformers import (
 )
 import torch
 
-# ==== MODELO DE CONVERSACIÓN (DialoGPT + traducción) ====
+
 tokenizer_chat = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 modelo_chat = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 chat_history_ids = None
@@ -16,12 +16,12 @@ modelo_es_en = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-es-en")
 tokenizer_en_es = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-es")
 modelo_en_es = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-en-es")
 
-# ==== MODELO DE ANÁLISIS DE DOCUMENTOS (BART) ====
+
 tokenizer_doc = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
 modelo_doc = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")
 
 
-# ==== FUNCIONES DE TRADUCCIÓN ====
+
 def traducir_es_a_en(texto: str) -> str:
     tokens = tokenizer_es_en(texto, return_tensors="pt", truncation=True)
     traducido = modelo_es_en.generate(**tokens)
@@ -33,7 +33,7 @@ def traducir_en_a_es(texto: str) -> str:
     return tokenizer_en_es.decode(traducido[0], skip_special_tokens=True)
 
 
-# ==== RESPUESTA DEL AGENTE (TRADUCIDO) ====
+
 def responder_chat(prompt_es: str) -> str:
     global chat_history_ids
     prompt_en = traducir_es_a_en(prompt_es)
